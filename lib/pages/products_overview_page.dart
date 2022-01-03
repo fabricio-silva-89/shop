@@ -19,6 +19,18 @@ class ProductsOverviewPage extends StatefulWidget {
 
 class _ProductsOverviewPageState extends State<ProductsOverviewPage> {
   bool showFavoriteOnly = false;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Provider.of<ProductList>(context, listen: false)
+        .loadProducts()
+        .then((value) {
+      setState(() => isLoading = false);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +73,9 @@ class _ProductsOverviewPageState extends State<ProductsOverviewPage> {
           }),
         ],
       ),
-      body: ProductGrid(showFavoriteOnly: showFavoriteOnly),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ProductGrid(showFavoriteOnly: showFavoriteOnly),
       drawer: const AppDrawer(),
     );
   }
