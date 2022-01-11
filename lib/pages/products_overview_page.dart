@@ -23,7 +23,6 @@ class _ProductsOverviewPageState extends State<ProductsOverviewPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     Provider.of<ProductList>(context, listen: false)
         .loadProducts()
