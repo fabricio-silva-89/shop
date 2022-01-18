@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shop/models/auth.dart';
 
 enum AuthMode { signup, login }
 
@@ -13,6 +15,8 @@ class AuthForm extends StatefulWidget {
 
 class _AuthFormState extends State<AuthForm> {
   final passwordController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+  bool isLoading = false;
 
   AuthMode authMode = AuthMode.login;
   Map<String, String> authData = {
@@ -23,7 +27,40 @@ class _AuthFormState extends State<AuthForm> {
   bool _isLogin() => authMode == AuthMode.login;
   bool _isSignup() => authMode == AuthMode.signup;
 
-  void submit() {}
+  void _switchAuthMode() {
+    setState(() {
+      if (_isLogin()) {
+        authMode = AuthMode.signup;
+      } else {
+        authMode = AuthMode.login;
+      }
+    });
+  }
+
+  Future<void> submit() async {
+    final isValid = formKey.currentState?.validate() ?? false;
+
+    if (!isValid) return;
+
+    setState(() => isLoading = true);
+
+    formKey.currentState?.save();
+    Auth auth = Provider.of<Auth>(context, listen: false);
+
+    if (_isLogin()) {
+      await auth.login(
+        authData['email']!,
+        authData['password']!,
+      );
+    } else {
+      await auth.signUp(
+        authData['email']!,
+        authData['password']!,
+      );
+    }
+
+    setState(() => isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +73,10 @@ class _AuthFormState extends State<AuthForm> {
       ),
       child: Container(
         padding: const EdgeInsets.all(16),
-        height: 320,
+        height: _isLogin() ? 310 : 400,
         width: deviceSize.width * 0.75,
         child: Form(
+          key: formKey,
           child: Column(
             children: [
               TextFormField(
@@ -55,11 +93,11 @@ class _AuthFormState extends State<AuthForm> {
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Senha'),
+                decoration: const InputDecoration(labelText: 'Senha'),
                 controller: passwordController,
                 obscureText: true,
                 onSaved: (password) => authData['password'] = password ?? '',
-                validator: authMode == AuthMode.login
+                validator: _isLogin()
                     ? null
                     : (passwordValidator) {
                         final password = passwordValidator ?? '';
@@ -70,9 +108,10 @@ class _AuthFormState extends State<AuthForm> {
                         }
                       },
               ),
-              if (authMode == AuthMode.signup)
+              if (_isSignup())
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Confirmar Senha'),
+                  decoration:
+                      const InputDecoration(labelText: 'Confirmar Senha'),
                   keyboardType: TextInputType.emailAddress,
                   obscureText: true,
                   validator: (passwordValidator) {
@@ -85,20 +124,29 @@ class _AuthFormState extends State<AuthForm> {
                   },
                 ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: submit,
-                child:
-                    Text(authMode == AuthMode.login ? 'ENTRAR' : 'REGISTRAR'),
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 30,
-                    vertical: 8,
+              if (isLoading)
+                const CircularProgressIndicator()
+              else
+                ElevatedButton(
+                  onPressed: submit,
+                  child: Text(_isLogin() ? 'ENTRAR' : 'REGISTRAR'),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 8,
+                    ),
                   ),
                 ),
-              ),
+              const Spacer(),
+              TextButton(
+                onPressed: _switchAuthMode,
+                child: Text(
+                  _isLogin() ? 'DESEJA REGISTRAR?' : 'JÁ POSSUI CONTA?',
+                ),
+              )
             ],
           ),
         ),
