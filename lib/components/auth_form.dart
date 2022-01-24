@@ -38,17 +38,18 @@ class _AuthFormState extends State<AuthForm> {
 
   void _showErrorDialog(String msg) {
     showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-              title: const Text('Ocorreu um erro'),
-              content: Text(msg),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop,
-                  child: const Text('Fechar'),
-                )
-              ],
-            ));
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Ocorreu um erro'),
+        content: Text(msg),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fechar'),
+          )
+        ],
+      ),
+    );
   }
 
   Future<void> submit() async {
