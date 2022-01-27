@@ -12,7 +12,8 @@ class AuthForm extends StatefulWidget {
   _AuthFormState createState() => _AuthFormState();
 }
 
-class _AuthFormState extends State<AuthForm> {
+class _AuthFormState extends State<AuthForm>
+    with SingleTickerProviderStateMixin {
   final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   bool isLoading = false;
@@ -23,15 +24,62 @@ class _AuthFormState extends State<AuthForm> {
     'password': '',
   };
 
+  AnimationController? _controller;
+  Animation<double>? _opacityAnimation;
+  Animation<Offset>? _slideAnimation;
+
   bool _isLogin() => authMode == AuthMode.login;
-  bool _isSignup() => authMode == AuthMode.signup;
+  // bool _isSignup() => authMode == AuthMode.signup;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(
+        milliseconds: 300,
+      ),
+    );
+
+    _opacityAnimation = Tween(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller!,
+        curve: Curves.linear,
+      ),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, -1.5),
+      end: const Offset(0, 0),
+    ).animate(
+      CurvedAnimation(
+        parent: _controller!,
+        curve: Curves.linear,
+      ),
+    );
+
+    // _heightAnimation?.addListener(() {
+    //   setState(() {});
+    // });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller?.dispose();
+  }
 
   void _switchAuthMode() {
     setState(() {
       if (_isLogin()) {
         authMode = AuthMode.signup;
+        _controller?.forward();
       } else {
         authMode = AuthMode.login;
+        _controller?.reverse();
       }
     });
   }
@@ -92,9 +140,12 @@ class _AuthFormState extends State<AuthForm> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.linear,
         padding: const EdgeInsets.all(16),
         height: _isLogin() ? 310 : 400,
+        // height: _heightAnimation?.value.height ?? (_isLogin() ? 310 : 400),
         width: deviceSize.width * 0.75,
         child: Form(
           key: formKey,
@@ -129,21 +180,34 @@ class _AuthFormState extends State<AuthForm> {
                         }
                       },
               ),
-              if (_isSignup())
-                TextFormField(
-                  decoration:
-                      const InputDecoration(labelText: 'Confirmar Senha'),
-                  keyboardType: TextInputType.emailAddress,
-                  obscureText: true,
-                  validator: (passwordValidator) {
-                    final password = passwordValidator ?? '';
-                    if (password != passwordController.text) {
-                      return 'Senhas informadas não conferem';
-                    } else {
-                      return null;
-                    }
-                  },
+              AnimatedContainer(
+                constraints: BoxConstraints(
+                  minHeight: _isLogin() ? 0 : 60,
+                  maxHeight: _isLogin() ? 0 : 120,
                 ),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.linear,
+                child: FadeTransition(
+                  opacity: _opacityAnimation!,
+                  child: SlideTransition(
+                    position: _slideAnimation!,
+                    child: TextFormField(
+                      decoration:
+                          const InputDecoration(labelText: 'Confirmar Senha'),
+                      keyboardType: TextInputType.emailAddress,
+                      obscureText: true,
+                      validator: (passwordValidator) {
+                        final password = passwordValidator ?? '';
+                        if (password != passwordController.text) {
+                          return 'Senhas informadas não conferem';
+                        } else {
+                          return null;
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 20),
               if (isLoading)
                 const CircularProgressIndicator()
