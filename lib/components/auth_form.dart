@@ -169,16 +169,14 @@ class _AuthFormState extends State<AuthForm>
                 controller: passwordController,
                 obscureText: true,
                 onSaved: (password) => authData['password'] = password ?? '',
-                validator: _isLogin()
-                    ? null
-                    : (passwordValidator) {
-                        final password = passwordValidator ?? '';
-                        if (password.isEmpty || password.length < 5) {
-                          return 'Informe uma senha válida';
-                        } else {
-                          return null;
-                        }
-                      },
+                validator: (passwordValidator) {
+                  final password = passwordValidator ?? '';
+                  if (password.isEmpty || password.length < 5) {
+                    return 'Informe uma senha válida';
+                  } else {
+                    return null;
+                  }
+                },
               ),
               AnimatedContainer(
                 constraints: BoxConstraints(
@@ -196,14 +194,16 @@ class _AuthFormState extends State<AuthForm>
                           const InputDecoration(labelText: 'Confirmar Senha'),
                       keyboardType: TextInputType.emailAddress,
                       obscureText: true,
-                      validator: (passwordValidator) {
-                        final password = passwordValidator ?? '';
-                        if (password != passwordController.text) {
-                          return 'Senhas informadas não conferem';
-                        } else {
-                          return null;
-                        }
-                      },
+                      validator: _isLogin()
+                          ? null
+                          : (passwordValidator) {
+                              final password = passwordValidator ?? '';
+                              if (password != passwordController.text) {
+                                return 'Senhas informadas não conferem';
+                              } else {
+                                return null;
+                              }
+                            },
                     ),
                   ),
                 ),

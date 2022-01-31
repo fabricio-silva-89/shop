@@ -20,27 +20,32 @@ class _OrderWidgetState extends State<OrderWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Column(
-        children: [
-          ListTile(
-            title: Text('R\$ ${widget.order.total.toStringAsFixed(2)}'),
-            subtitle: Text(
-              DateFormat('dd/MM/yyyy hh:mm').format(widget.order.date),
+    final itemsHeight = (widget.order.products.length * 24.0) + 10.0;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      height: expanded ? itemsHeight + 80 : 80,
+      child: Card(
+        child: Column(
+          children: [
+            ListTile(
+              title: Text('R\$ ${widget.order.total.toStringAsFixed(2)}'),
+              subtitle: Text(
+                DateFormat('dd/MM/yyyy hh:mm').format(widget.order.date),
+              ),
+              trailing: IconButton(
+                onPressed: () {
+                  setState(() {
+                    expanded = !expanded;
+                  });
+                },
+                icon: const Icon(Icons.expand_more),
+              ),
             ),
-            trailing: IconButton(
-              onPressed: () {
-                setState(() {
-                  expanded = !expanded;
-                });
-              },
-              icon: const Icon(Icons.expand_more),
-            ),
-          ),
-          if (expanded)
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              height: expanded ? itemsHeight : 0,
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-              height: (widget.order.products.length * 25) + 10,
               child: ListView(
                 children: widget.order.products.map((product) {
                   return Row(
@@ -65,7 +70,8 @@ class _OrderWidgetState extends State<OrderWidget> {
                 }).toList(),
               ),
             )
-        ],
+          ],
+        ),
       ),
     );
   }
